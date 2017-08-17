@@ -1,4 +1,4 @@
-# battleship
+# Battleship
 A NodeJS version of the Battleship game(a Milton Bradley Game). All interactions happen in the terminal.
 
 ##To-Do

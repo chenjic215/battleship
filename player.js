@@ -1,4 +1,3 @@
-
 var grid = require("./grid");
 
 const GRIDSIZE = 10; //To-DO: let user define the size of the board

@@ -113,6 +113,4 @@ exports.play = (rl, player1, player2, gameLog, callback) => {
 
     return callback(gameLog);
   });
-
-
 }

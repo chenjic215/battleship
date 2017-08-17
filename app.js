@@ -78,10 +78,8 @@ game.selectMode(rl, (userSelected) => {
   } else if (userSelected == 2) {
     //TO-DO: implement Human vs Machine
 
-
   } else {
     //TO-DO: implement Machine vs Machine
-
 
   }
 
