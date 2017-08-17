@@ -101,11 +101,11 @@ exports.createProfile = (rl, callback) => {
   });
 };
 
-exports.play = (rl, player1, player2, callback) => {
+exports.play = (rl, player1, player2, gameLog, callback) => {
 
-  player.attack(rl, player1, player2, (result)=> {
+  player.attack(rl, player1, player2, gameLog, (gameLog)=> {
 
-    return callback(result);
+    return callback(gameLog);
   });
 
 

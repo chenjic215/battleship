@@ -229,7 +229,7 @@ exports.enterPosition = (rl, shipName, playerShips, positionDict, oceanGrid, cal
   });
 }
 
-exports.attack = (rl, attacker, defender, callback) => {
+exports.attack = (rl, attacker, defender, gameLog, callback) => {
   rl.resume();
   rl.question("\n"+ attacker.playerName+" : I would like to attack on coordinates: ", (answer) => {
 
@@ -240,83 +240,147 @@ exports.attack = (rl, attacker, defender, callback) => {
 
       //validate the input type
       if (isLetter(a) && !(isNaN(b))) {
-        //check if the coordinate is valid point on the grid
+
         var x = grid.letterToNumber(a);
         var y = Number(b);
+
+        //check if the coordinate is valid point on the grid
         if (x< 10 && y< 10) {
 
-          //TO-DO: check if this position has alreayd been attacked.
+          //check if this position has already been attacked.
+          if (attacker.targetGrid[x][y] != 0) {
+            console.log("System: it has been attacked already, you just wasted an attack opportunity.(Already Taken)");
 
-          //check the attack result
-
-          if (defender.oceanGrid[x][y] == 0) {
-            //it is a miss
-            console.log(defender.playerName+": Hahaha, you missed it! (Missed)");
-
-            //attacker mark a miss on its targetGrid
-            attacker.targetGrid[x][y] = "M";
+            //gameLog
+            var d = new Date();
+            var timeStamp = d.getTime();
+            gameLog.Game_Play.push({
+              time: timeStamp,
+              attacker: attacker,
+              defender: defender,
+              coordinate: answer,
+              result_of_attack: "Already Taken"
+            });
 
             //current attacker and defender switch role for next round
-            exports.attack(rl, defender, attacker, (result) => {
+            exports.attack(rl, defender, attacker, gameLog, (gameLog) => {
 
               rl.pause();
-              return callback(result);
+              return callback(gameLog);
             })
 
           } else {
-            // it is a hit
+            //check the attack result
+            if (defender.oceanGrid[x][y] == 0) {
+              //it is a miss
+              console.log(defender.playerName+": Hahaha, you missed it! (Missed)");
 
-            attacker.targetGrid[x][y] = "H";
-            defender.oceanGrid[x][y] = "H";
+              //gameLog
+              var d = new Date();
+              var timeStamp = d.getTime();
+              gameLog.Game_Play.push({
+                time: timeStamp,
+                attacker: attacker,
+                defender: defender,
+                coordinate: answer,
+                result_of_attack: "Missed"
+              });
 
-            var shipName = defender.positionDict[answer.toUpperCase()].shipName;
-            defender.playerShips[shipName].partsLeft = defender.playerShips[shipName].partsLeft - 1;
-            defender.totalPartLeft = defender.totalPartLeft - 1;
+              //attacker mark a miss on its targetGrid
+              attacker.targetGrid[x][y] = "M";
 
-            //check if any ship sunk
-            if (defender.playerShips[shipName].partsLeft == 0) {
-              console.log(defender.playerName+": OMG, My "+ shipName+ " ship just sunk! (Sunk)");
-            } else {
-              console.log(defender.playerName+": Ugh, its a hit! (Hit)");
-            }
-
-            //check if all ship sunk
-            if (defender.totalPartLeft == 0) {
-              console.log(defender.playerName+": You win!, all my ships were sunk! (GameOver)");
-              var result =  {
-                winner : attacker.playerName
-              }
-
-              rl.pause();
-              return callback(result);
-            } else {
               //current attacker and defender switch role for next round
-              exports.attack(rl, defender, attacker, (result) => {
+              exports.attack(rl, defender, attacker, gameLog, (gameLog) => {
 
                 rl.pause();
-                return callback(result);
+                return callback(gameLog);
               })
-            }
-          }
 
+            } else {
+              // it is a hit
+
+              attacker.targetGrid[x][y] = "H";
+              defender.oceanGrid[x][y] = "H";
+
+              var shipName = defender.positionDict[answer.toUpperCase()].shipName;
+              defender.playerShips[shipName].partsLeft = defender.playerShips[shipName].partsLeft - 1;
+              defender.totalPartLeft = defender.totalPartLeft - 1;
+
+              //check if any ship sunk
+              if (defender.playerShips[shipName].partsLeft == 0) {
+                console.log(defender.playerName+": OMG, My "+ shipName+ " ship just sunk! (Sunk)");
+
+                //gameLog
+                var d = new Date();
+                var timeStamp = d.getTime();
+                gameLog.Game_Play.push({
+                  time: timeStamp,
+                  attacker: attacker,
+                  defender: defender,
+                  coordinate: answer,
+                  result_of_attack: "Sunk"
+                });
+
+              } else {
+                console.log(defender.playerName+": Ugh, its a hit! (Hit)");
+
+                //gameLog
+                var d = new Date();
+                var timeStamp = d.getTime();
+                gameLog.Game_Play.push({
+                  time: timeStamp,
+                  attacker: attacker,
+                  defender: defender,
+                  coordinate: answer,
+                  result_of_attack: "Hit"
+                });
+              }
+
+              //check if all ship sunk
+              if (defender.totalPartLeft == 0) {
+                console.log(defender.playerName+": You win!, all my ships were sunk! (GameOver)");
+
+                //gameLog
+                gameLog.Result =  {
+                  winner : attacker.playerName,
+                  time: timeStamp,
+                  attacker: attacker,
+                  defender: defender,
+                  coordinate: answer,
+                  result_of_attack: "Hit"
+                };
+
+                rl.pause();
+                return callback(gameLog);
+              } else {
+                //current attacker and defender switch role for next round
+                exports.attack(rl, defender, attacker, gameLog, (gameLog) => {
+
+                  rl.pause();
+                  return callback(gameLog);
+                })
+              }
+            }
+
+          }
 
         } else {
           //re-enter due to invalid user input
           console.log("Error: Please enter required coordinate format as shown above.");
-          exports.attack(rl, attacker, defender, (result) => {
+          exports.attack(rl, attacker, defender, gameLog, (gameLog, result) => {
 
             rl.pause();
-            return callback(result);
+            return callback(gameLog, result);
           })
 
         }
       } else {
         //re-enter due to invalid user input
         console.log("Error: Please enter required coordinate format as shown above.");
-        exports.attack(rl, attacker, defender, (result) => {
+        exports.attack(rl, attacker, defender, gameLog, (gameLog, result) => {
 
           rl.pause();
-          return callback(result);
+          return callback(gameLog, result);
         })
 
 
@@ -325,10 +389,10 @@ exports.attack = (rl, attacker, defender, callback) => {
     } else {
         //re-enter due to invalid user input
         console.log("Error: Please enter required coordinate format as shown above.");
-        exports.attack(rl, attacker, defender, (result) => {
+        exports.attack(rl, attacker, defender, gameLog, (gameLog, result) => {
 
           rl.pause();
-          return callback(result);
+          return callback(gameLog, result);
         })
     }
   });

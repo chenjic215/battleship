@@ -1,5 +1,6 @@
 var game = require("./game");
 var grid = require("./grid");
+var fs = require('fs');
 
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -13,11 +14,21 @@ const GAMEMODE = {
   "3" : "Machine to Machine (Viewer)"
 };
 
-var mode = "";
+var gameLog = {
+  Game_Mode : {},
+  Player1 : {},
+  Player2 : {},
+  Game_Play: [],
+  Result: {}
+};
+
 game.printWelcomeMessage();
 
 game.selectMode(rl, (userSelected) => {
   console.log("Game starting with '"+ GAMEMODE[userSelected] + "' mode...");
+
+  //gameLog
+  gameLog.Game_Mode = GAMEMODE[userSelected];
 
   if (userSelected == 1) {
     //user take turn to create their profile:
@@ -25,6 +36,10 @@ game.selectMode(rl, (userSelected) => {
     //2. Place their ship (select starting point, ship type and direction)
 
     game.createProfile(rl, (player1, player2) => {
+
+      //gameLog
+      gameLog.Player1 = player1;
+      gameLog.Player2 = player2;
 
       console.log(player1.getInfo());
       console.log(player2.getInfo());
@@ -40,10 +55,23 @@ game.selectMode(rl, (userSelected) => {
       console.log("\nGame starts now!!");
 
       //var gamePlayLog =
-      game.play(rl, player1, player2, (result) => {
-        console.log("\nCongratulations "+result.winner+" ! You have won the game!!");
-        console.log("Congratulations "+result.winner+" ! You have won the game!!");
-        console.log("Congratulations "+result.winner+" ! You have won the game!!\n");
+      game.play(rl, player1, player2, gameLog, (gameLog) => {
+        console.log("\nCongratulations "+gameLog.Result.winner+" ! You have won the game!!");
+        console.log("Congratulations "+gameLog.Result.winner+" ! You have won the game!!");
+        console.log("Congratulations "+gameLog.Result.winner+" ! You have won the game!!\n");
+
+        var d = new Date();
+        var timeStamp = d.getTime();
+        var filePath = "./gameLog/"+player1.playerName + "_"+player2.playerName + "_"+timeStamp+".json";
+
+        fs.writeFile(filePath, JSON.stringify(gameLog), function(err) {
+            if(err) {
+                return console.log(err);
+            }
+
+            console.log("A game log has been saved at "+filePath+" !");
+        });
+
       });
     });
 

@@ -24,6 +24,7 @@ exports.createEmptyGrid = (size) => {
 exports.letterToNumber = (s) => {
   return ALPHABET.indexOf(s);
 }
+
 exports.displayGrid = (grid) => {
 
 }
