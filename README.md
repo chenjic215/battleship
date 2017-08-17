@@ -1,7 +1,7 @@
 # Battleship
 A NodeJS version of the Battleship game(a Milton Bradley Game). All interactions happen in the terminal.
 
-##To-Do
+## To-Do
 * Implement Human vs Machine
 * Implement Machine vs Machine (Smart guessing algorithm that make guess based on known hit and miss)
 
