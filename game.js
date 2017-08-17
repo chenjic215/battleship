@@ -1,13 +1,17 @@
-const readline = require('readline');
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+var player = require("./player");
 
 const GAMEMODE = {
-  "1" : "Machine to Machine (Viewer Mode)",
-  "2" : "Man to Machine"
+  "1" : "Human vs Human",
+  "2" : "Human to Machine",
+  "3" : "Machine to Machine (Viewer)"
+};
+
+const SHIPINFO = {
+  "Carrier" : 5,
+  "Battleship": 4,
+  "Cruiser": 3,
+  "Submarine": 3,
+  "Destroyer": 2,
 };
 
 //print welcome msg and general guidelines
@@ -42,6 +46,7 @@ exports.printWelcomeMessage = () => {
     console.log("Please select one of the following game mode:");
     console.log(" 1. "+ GAMEMODE[1]);
     console.log(" 2. "+ GAMEMODE[2]);
+    console.log(" 3. "+ GAMEMODE[3]);
   };
 
 //format headline messages
@@ -55,21 +60,48 @@ exports.formatMessage = (msg, callback) => {
   };
 
 //select game mode
-exports.selectMode = (callback) => {
+exports.selectMode = (rl, callback) => {
 
   rl.question("\nSelect game mode: ", (answer) => {
 
-    if (answer == "1" || answer == "2") {
+    //handler for bad user input
+    if (answer == "1" || answer == "2"  || answer == "3") {
       console.log(`\nUser have selected: ${answer}`);
-      rl.close();
+      rl.pause();
       return callback(answer);
 
     } else {
       //recurrrance until the right user input
       console.log("\nPlease enter only '1' or '2' !!");
-      exports.selectMode((selected)=> {
+      exports.selectMode(rl, (selected)=> {
         return callback(selected);
       });
     }
   });
+};
+
+exports.createProfile = (rl, callback) => {
+  //Player #1 - createProfile
+  player.enterPlayerName(rl, (name) => {
+    //Player #1 - place your ship and generate ocean grid
+    player.enterInitalShipPositions(rl, (playerShips, oceanGrid)=> {
+      var player1 = new player.createPlayer("Human", name, playerShips, oceanGrid);
+
+      //Player #2 - createProfile
+      player.enterPlayerName(rl, (name) => {
+        //Player #2 - place your ship and generate ocean grid
+        player.enterInitalShipPositions(rl, (playerShips, oceanGrid)=> {
+          var player2 = new player.createPlayer("Human", name, playerShips, oceanGrid);
+
+          return callback(player1, player2);
+
+        });
+
+      });
+
+
+
+    });
+  });
+
 };
