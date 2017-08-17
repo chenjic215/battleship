@@ -3,6 +3,8 @@ var grid = require("./grid");
 
 const GRIDSIZE = 10; //To-DO: let user define the size of the board
 
+var ALPHABET = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+
 const SHIPINFO = {
   "Carrier" : 5,
   "Battleship": 4,
@@ -11,12 +13,16 @@ const SHIPINFO = {
   "Destroyer": 2,
 };
 
-exports.createPlayer = function(playerType, playerName, playerShips, oceanGrid) {
+//constructor
+exports.createPlayer = function(playerType, playerName, playerShips, positionDict, oceanGrid) {
 
   console.log("Creating players...");
   this.playerType = playerType;
   this.playerName = playerName;
   this.playerShips = playerShips;
+  this.positionDict = positionDict;
+  //this.totalPartLeft =  5 + 4 + 3 + 3 + 2;
+  this.totalPartLeft =  5;
   console.log("Generating Target Grids...");
   this.targetGrid = grid.createEmptyGrid(GRIDSIZE);
   console.log("Generating Ocean Grids...");
@@ -26,6 +32,7 @@ exports.createPlayer = function(playerType, playerName, playerShips, oceanGrid) 
       playerName : this.playerName,
       playerType : this.playerType,
       playerShips: this.playerShips,
+      //positionDict: this.positionDict,
       targetGrid : this.targetGrid,
       oceanGrid : this.oceanGrid,
     };
@@ -53,7 +60,8 @@ exports.enterInitalShipPositions = (rl, callback) => {
 
   var oceanGrid = grid.createEmptyGrid(GRIDSIZE);
   var playerShips = {};
-  exports.enterPosition(rl, "Carrier", playerShips, oceanGrid, (playerShips, oceanGrid)=> {
+  var positionDict = {};
+  exports.enterPosition(rl, "Carrier", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
     console.log(playerShips);
     console.log(oceanGrid);
 
@@ -73,7 +81,7 @@ exports.enterInitalShipPositions = (rl, callback) => {
     //         console.log(playerShips);
     //         console.log(oceanGrid);
 
-            return callback(playerShips, oceanGrid);
+            return callback(playerShips, positionDict, oceanGrid);
 
     //       });
     //
@@ -84,10 +92,6 @@ exports.enterInitalShipPositions = (rl, callback) => {
     // });
 
   });
-
-
-
-
 };
 
 function isLetter(s) {
@@ -106,7 +110,7 @@ function isDirection(s) {
 }
 
 
-exports.enterPosition = (rl, shipName, playerShips, oceanGrid, callback) => {
+exports.enterPosition = (rl, shipName, playerShips, positionDict, oceanGrid, callback) => {
   rl.resume();
 
   rl.question("\nPlease enter the position for " + shipName + " (" + SHIPINFO[shipName]+ " spaces):", (answer) => {
@@ -158,22 +162,31 @@ exports.enterPosition = (rl, shipName, playerShips, oceanGrid, callback) => {
         //check if ship is outside of the grid or overlap with other ships
         if (!overlap && !goOverGrid) {
 
-          //update oceanGrid
+          //update oceanGrid AND add position to positionDict
           for (var i=0; i< spaceNeeded.length;i++) {
             oceanGrid[spaceNeeded[i][0]][spaceNeeded[i][1]] = 1;
+
+            var coordinate = ALPHABET[spaceNeeded[i][0]] + spaceNeeded[i][1].toString();
+            positionDict[coordinate] =  {
+              shipName : shipName,
+              status : 0,
+              order: i,
+              numericalPosition: spaceNeeded[i]
+            };
           }
 
-          var status = [];
-          for (var i=0;i<SHIPINFO[shipName];i++) {
-            status.push(1);
-          }
+          // var status = [];
+          // for (var i=0;i<SHIPINFO[shipName];i++) {
+          //   status.push(1);
+          // }
           playerShips[shipName] = {
             position : spaceNeeded,
-            status : status, // 1 represent not been hit. 0 represent this part has been hit.
-            size: SHIPINFO[shipName]
+            // status : status, // 1 represent not been hit. 0 represent this part has been hit.
+            size: SHIPINFO[shipName],
+            partsLeft: SHIPINFO[shipName]
           };
           rl.pause();
-          return callback(playerShips, oceanGrid);
+          return callback(playerShips, positionDict, oceanGrid);
 
         } else {
           //invalid input: ship go over the board.
@@ -183,10 +196,10 @@ exports.enterPosition = (rl, shipName, playerShips, oceanGrid, callback) => {
             console.log("Error: Ship must be placed inside the grid. Please re-enter a starting position.");
           }
 
-          exports.enterPosition(rl, shipName, playerShips, oceanGrid, (playerShips, oceanGrid)=> {
+          exports.enterPosition(rl, shipName, playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
 
             rl.pause();
-            return callback(playerShips, oceanGrid);
+            return callback(playerShips, positionDict, oceanGrid);
 
           } );
         }
@@ -194,10 +207,10 @@ exports.enterPosition = (rl, shipName, playerShips, oceanGrid, callback) => {
       } else {
           //invalid input, re-enter the position
           console.log("Error: Please enter required position format as shown above.");
-          exports.enterPosition(rl, shipName, playerShips, oceanGrid, (playerShips, oceanGrid)=> {
+          exports.enterPosition(rl, shipName, playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
 
             rl.pause();
-            return callback(playerShips, oceanGrid);
+            return callback(playerShips, positionDict, oceanGrid);
 
           } );
       }
@@ -205,15 +218,118 @@ exports.enterPosition = (rl, shipName, playerShips, oceanGrid, callback) => {
     } else {
       //invalid input, re-enter the position
       console.log("Error: Please enter required position format as shown above.");
-      exports.enterPosition(rl, shipName, playerShips, oceanGrid, (playerShips, oceanGrid)=> {
+      exports.enterPosition(rl, shipName, playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
 
         rl.pause();
-        return callback(playerShips, oceanGrid);
+        return callback(playerShips, positionDict, oceanGrid);
 
       } );
 
     }
+  });
+}
+
+exports.attack = (rl, attacker, defender, callback) => {
+  rl.resume();
+  rl.question("\n"+ attacker.playerName+" : I would like to attack on coordinates: ", (answer) => {
+
+    //validate user input
+    if (answer.length ==2) {
+      var a =  answer[0].toUpperCase();
+      var b =  answer[1];
+
+      //validate the input type
+      if (isLetter(a) && !(isNaN(b))) {
+        //check if the coordinate is valid point on the grid
+        var x = grid.letterToNumber(a);
+        var y = Number(b);
+        if (x< 10 && y< 10) {
+
+          //TO-DO: check if this position has alreayd been attacked.
+
+          //check the attack result
+
+          if (defender.oceanGrid[x][y] == 0) {
+            //it is a miss
+            console.log(defender.playerName+": Hahaha, you missed it! (Missed)");
+
+            //attacker mark a miss on its targetGrid
+            attacker.targetGrid[x][y] = "M";
+
+            //current attacker and defender switch role for next round
+            exports.attack(rl, defender, attacker, (result) => {
+
+              rl.pause();
+              return callback(result);
+            })
+
+          } else {
+            // it is a hit
+
+            attacker.targetGrid[x][y] = "H";
+            defender.oceanGrid[x][y] = "H";
+
+            var shipName = defender.positionDict[answer.toUpperCase()].shipName;
+            defender.playerShips[shipName].partsLeft = defender.playerShips[shipName].partsLeft - 1;
+            defender.totalPartLeft = defender.totalPartLeft - 1;
+
+            //check if any ship sunk
+            if (defender.playerShips[shipName].partsLeft == 0) {
+              console.log(defender.playerName+": OMG, My "+ shipName+ " ship just sunk! (Sunk)");
+            } else {
+              console.log(defender.playerName+": Ugh, its a hit! (Hit)");
+            }
+
+            //check if all ship sunk
+            if (defender.totalPartLeft == 0) {
+              console.log(defender.playerName+": You win!, all my ships were sunk! (GameOver)");
+              var result =  {
+                winner : attacker.playerName
+              }
+
+              rl.pause();
+              return callback(result);
+            } else {
+              //current attacker and defender switch role for next round
+              exports.attack(rl, defender, attacker, (result) => {
+
+                rl.pause();
+                return callback(result);
+              })
+            }
+          }
 
 
+        } else {
+          //re-enter due to invalid user input
+          console.log("Error: Please enter required coordinate format as shown above.");
+          exports.attack(rl, attacker, defender, (result) => {
+
+            rl.pause();
+            return callback(result);
+          })
+
+        }
+      } else {
+        //re-enter due to invalid user input
+        console.log("Error: Please enter required coordinate format as shown above.");
+        exports.attack(rl, attacker, defender, (result) => {
+
+          rl.pause();
+          return callback(result);
+        })
+
+
+      }
+
+    } else {
+        //re-enter due to invalid user input
+        console.log("Error: Please enter required coordinate format as shown above.");
+        exports.attack(rl, attacker, defender, (result) => {
+
+          rl.pause();
+          return callback(result);
+        })
+    }
   });
 }

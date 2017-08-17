@@ -31,8 +31,20 @@ game.selectMode(rl, (userSelected) => {
 
       console.log("\nPlayers have created their profile...");
       console.log("Players have placed their ships...");
+      console.log("Starting the game...");
+
+      console.log("\nNote: Attacker must input (x,y) coordinates.");
+      console.log("      1. x is a letter between A-J. y is a number between 0-9.");
+      console.log("      2. sample coordinates: A1, B9, F1, etc.");
+
       console.log("\nGame starts now!!");
 
+      //var gamePlayLog =
+      game.play(rl, player1, player2, (result) => {
+        console.log("\nCongratulations "+result.winner+" ! You have won the game!!");
+        console.log("Congratulations "+result.winner+" ! You have won the game!!");
+        console.log("Congratulations "+result.winner+" ! You have won the game!!\n");
+      });
     });
 
   } else if (userSelected == 2) {

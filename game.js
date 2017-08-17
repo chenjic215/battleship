@@ -84,24 +84,29 @@ exports.createProfile = (rl, callback) => {
   //Player #1 - createProfile
   player.enterPlayerName(rl, (name) => {
     //Player #1 - place your ship and generate ocean grid
-    player.enterInitalShipPositions(rl, (playerShips, oceanGrid)=> {
-      var player1 = new player.createPlayer("Human", name, playerShips, oceanGrid);
+    player.enterInitalShipPositions(rl, (playerShips, positionDict, oceanGrid)=> {
+      var player1 = new player.createPlayer("Human", name, playerShips, positionDict, oceanGrid);
 
       //Player #2 - createProfile
       player.enterPlayerName(rl, (name) => {
         //Player #2 - place your ship and generate ocean grid
-        player.enterInitalShipPositions(rl, (playerShips, oceanGrid)=> {
-          var player2 = new player.createPlayer("Human", name, playerShips, oceanGrid);
+        player.enterInitalShipPositions(rl, (playerShips, positionDict, oceanGrid)=> {
+          var player2 = new player.createPlayer("Human", name, playerShips, positionDict, oceanGrid);
 
           return callback(player1, player2);
 
         });
-
       });
-
-
-
     });
   });
-
 };
+
+exports.play = (rl, player1, player2, callback) => {
+
+  player.attack(rl, player1, player2, (result)=> {
+
+    return callback(result);
+  });
+
+
+}
