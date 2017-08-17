@@ -21,8 +21,7 @@ exports.createPlayer = function(playerType, playerName, playerShips, positionDic
   this.playerName = playerName;
   this.playerShips = playerShips;
   this.positionDict = positionDict;
-  //this.totalPartLeft =  5 + 4 + 3 + 3 + 2;
-  this.totalPartLeft =  5;
+  this.totalPartLeft =  5 + 4 + 3 + 3 + 2;
   console.log("Generating Target Grids...");
   this.targetGrid = grid.createEmptyGrid(GRIDSIZE);
   console.log("Generating Ocean Grids...");
@@ -33,10 +32,15 @@ exports.createPlayer = function(playerType, playerName, playerShips, positionDic
       playerType : this.playerType,
       playerShips: this.playerShips,
       //positionDict: this.positionDict,
-      targetGrid : this.targetGrid,
-      oceanGrid : this.oceanGrid,
+      // targetGrid : this.targetGrid,
+      // oceanGrid : this.oceanGrid,
     };
-    return info;
+    //display the info and grid
+    console.log("\n\n"+info.playerName+"'s profile: \n");
+    console.log(info);
+    grid.displayGrid(this.targetGrid, "Target Grid");
+    grid.displayGrid(this.oceanGrid, "Ocean Grid");
+    return true;
   };
 };
 
@@ -62,35 +66,37 @@ exports.enterInitalShipPositions = (rl, callback) => {
   var playerShips = {};
   var positionDict = {};
   exports.enterPosition(rl, "Carrier", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
-    console.log(playerShips);
-    console.log(oceanGrid);
+    // console.log(playerShips);
+    //  console.log(oceanGrid);
+    grid.displayGrid(oceanGrid, "Ocean Grid");
 
-    // exports.enterPosition(rl, "Battleship", playerShips, oceanGrid, (playerShips, oceanGrid)=> {
-    //   console.log(playerShips);
-    //   console.log(oceanGrid);
-    //
-    //   exports.enterPosition(rl, "Cruiser", playerShips, oceanGrid, (playerShips, oceanGrid)=> {
-    //     console.log(playerShips);
-    //     console.log(oceanGrid);
-    //
-    //     exports.enterPosition(rl, "Submarine", playerShips, oceanGrid, (playerShips, oceanGrid)=> {
-    //       console.log(playerShips);
-    //       console.log(oceanGrid);
-    //
-    //       exports.enterPosition(rl, "Destroyer", playerShips, oceanGrid, (playerShips, oceanGrid)=> {
-    //         console.log(playerShips);
-    //         console.log(oceanGrid);
+
+    exports.enterPosition(rl, "Battleship", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
+      // console.log(playerShips);
+      // console.log(oceanGrid);
+      grid.displayGrid(oceanGrid, "Ocean Grid");
+
+      exports.enterPosition(rl, "Cruiser", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
+        // console.log(playerShips);
+        // console.log(oceanGrid);
+        grid.displayGrid(oceanGrid, "Ocean Grid");
+
+        exports.enterPosition(rl, "Submarine", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
+          // console.log(playerShips);
+          // console.log(oceanGrid);
+          grid.displayGrid(oceanGrid, "Ocean Grid");
+
+          exports.enterPosition(rl, "Destroyer", playerShips, positionDict, oceanGrid, (playerShips, positionDict, oceanGrid)=> {
+            // console.log(playerShips);
+            // console.log(oceanGrid);
+            grid.displayGrid(oceanGrid, "Ocean Grid");
 
             return callback(playerShips, positionDict, oceanGrid);
 
-    //       });
-    //
-    //     });
-    //
-    //   });
-    //
-    // });
-
+          });
+        });
+      });
+    });
   });
 };
 
@@ -135,7 +141,8 @@ exports.enterPosition = (rl, shipName, playerShips, positionDict, oceanGrid, cal
           for (var i=0; i<SHIPINFO[shipName];i++) {
             var currentX = x+i;
 
-            if (currentX < 10) {
+            if (currentX < 10 & y < 10) {
+
               if (oceanGrid[currentX][y] == 1) {
                 overlap =  true;
               }
@@ -148,7 +155,7 @@ exports.enterPosition = (rl, shipName, playerShips, positionDict, oceanGrid, cal
           for (var i=0; i<SHIPINFO[shipName];i++) {
             var currentY = y+i;
 
-            if (currentY < 10) {
+            if (x < 10 && currentY < 10) {
               if (oceanGrid[x][currentY] == 1) {
                 overlap =  true;
               }

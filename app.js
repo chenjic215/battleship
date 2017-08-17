@@ -41,8 +41,8 @@ game.selectMode(rl, (userSelected) => {
       gameLog.Player1 = player1;
       gameLog.Player2 = player2;
 
-      console.log(player1.getInfo());
-      console.log(player2.getInfo());
+      player1.getInfo();
+      player2.getInfo();
 
       console.log("\nPlayers have created their profile...");
       console.log("Players have placed their ships...");
@@ -69,20 +69,20 @@ game.selectMode(rl, (userSelected) => {
                 return console.log(err);
             }
 
-            console.log("A game log has been saved at "+filePath+" !");
+            console.log("A game log has been saved at "+filePath+" !\n");
         });
 
       });
     });
 
   } else if (userSelected == 2) {
+    //TO-DO: implement Human vs Machine
+
 
   } else {
+    //TO-DO: implement Machine vs Machine
+
 
   }
-
-
-
-
 
 });

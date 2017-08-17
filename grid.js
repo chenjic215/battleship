@@ -25,6 +25,26 @@ exports.letterToNumber = (s) => {
   return ALPHABET.indexOf(s);
 }
 
-exports.displayGrid = (grid) => {
+//display the grid better in terminal
+exports.displayGrid = (grid, gridName) => {
 
+  var title = "";
+  for(var i=0; i<Math.floor((25 - gridName.length)/2); i++) {
+    title = title + " ";
+  }
+  title = title + gridName;
+  console.log("\n"+title);
+
+  var letters = ["A","B","C","D","E","F","G","H","I","J"];
+  console.log("    0 1 2 3 4 5 6 7 8 9  ");
+  console.log("    - - - - - - - - - -  ");
+  for (var i=0; i<letters.length; i++) {
+    var string = letters[i]+" | ";
+    for (var a=0;a<10;a++) {
+      string = string + grid[i][a] + " ";
+    }
+    string = string + "|";
+    console.log(string);
+  }
+  console.log("    - - - - - - - - - -  ");
 }

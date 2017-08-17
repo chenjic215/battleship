@@ -65,10 +65,16 @@ exports.selectMode = (rl, callback) => {
   rl.question("\nSelect game mode: ", (answer) => {
 
     //handler for bad user input
-    if (answer == "1" || answer == "2"  || answer == "3") {
+    if (answer == "1") {
       console.log(`\nUser have selected: ${answer}`);
       rl.pause();
       return callback(answer);
+
+    } else if (answer == "2"  || answer == "3"){
+      console.log("Mode #2 and #3 are not availble for now. Please re-select!");
+      exports.selectMode(rl, (selected)=> {
+        return callback(selected);
+      });
 
     } else {
       //recurrrance until the right user input
